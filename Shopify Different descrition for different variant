@@ -1,0 +1,62 @@
+Html:
+=====
+<div class="variant-details">{{ product.selected_or_first_available_variant.metafields.custom.test }}</div>
+
+
+Javascript:
+==========
+
+<script id="variant-metafield-data" type="application/json">
+ {
+
+   {% for variant in product.variants %}
+   {% assign metafieldcontend = variant.metafields.custom.test %} 
+  "{{ variant.id }}" : "{{ metafieldcontend }}" {% unless forloop.last %}, {% endunless %}
+  {% endfor %}
+ }
+</script>
+
+
+  var product = {{ product | json }}
+  
+  document.querySelectorAll('input[type="radio"]').forEach( radio =>{
+  radio.addEventListener("change", () => {
+
+     //Selected Option
+    var selectedOptions = [];
+    document.querySelectorAll('input[type="radio"]:checked').forEach( radio =>{
+        selectedOptions.push(radio.value)
+    })
+
+
+     //Finding Matched Variant
+    var matchedVariant = product.variants.find(variant => {
+      var pass = true;
+      for(var i=0; i<selectedOptions.length; i++){
+        if(selectedOptions.indexOf(variant.options[i]) == -1){
+          pass = false
+          break
+        }
+      }
+      return pass
+    })
+
+
+    //Change Product Variant Id
+    document.querySelector('#product-id').value = matchedVariant.id
+
+     //Change url
+    var url = new URLParse(window.location.href, true)
+    url.query.variant =  matchedVariant.id
+    window.history.replaceState(null, null, url.toString());
+
+    
+    //Different descrition for different variant
+    const allvariant = JSON.parse(document.querySelector('#variant-metafield-data').textContent)
+    const variantdetails = document.querySelector('.variant-details');
+    variantdetails.textContent = allvariant[matchedVariant.id];
+    
+    
+   });
+    
+  });
