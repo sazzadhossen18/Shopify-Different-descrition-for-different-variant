@@ -17,6 +17,51 @@ Javascript:
 </script>
 
 
+<script>
+  var product = {{ product | json }};
+
+  document.querySelectorAll('.variant-picker input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+
+      // Collect selected option TEXTS in correct order
+      let selectedOptions = [];
+
+      document
+        .querySelectorAll('.variant-picker input[type="radio"]:checked')
+        .forEach(input => {
+          const label = document.querySelector(`label[for="${input.id}"] span`);
+          if (label) {
+            selectedOptions.push(label.textContent.trim());
+          }
+        });
+
+      // Find matching variant
+      const matchedVariant = product.variants.find(variant => {
+        return variant.options.every((opt, index) => {
+          return opt === selectedOptions[index];
+        });
+      });
+
+      if (!matchedVariant) {
+        console.warn('No matching variant found', selectedOptions);
+        return;
+      }
+
+      console.log('Matched variant:', matchedVariant);
+
+      // Update product form ID
+      document.querySelector('#product-id').value = matchedVariant.id;
+
+      // Update URL
+      const url = new URL(window.location.href);
+      url.searchParams.set('variant', matchedVariant.id);
+      window.history.replaceState({}, '', url);
+
+    });
+  });
+</script>
+
+
   var product = {{ product | json }}
   
   document.querySelectorAll('input[type="radio"]').forEach( radio =>{
